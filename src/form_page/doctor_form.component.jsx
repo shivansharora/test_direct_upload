@@ -1,241 +1,3 @@
-// import React, { useState, createRef } from "react";
-// import { useForm, Controller } from "react-hook-form";
-// import axios from 'axios';
-
-// import {
-// Grid,
-// Button,
-// TextField
-// } from "@material-ui/core";
-// var sizeof = require('object-sizeof');
-// const DoctorForm = ({ redirect }) => {
-//   const { control, handleSubmit, errors, register,getValues, watch, setValue, reset } = useForm();
-//   // const [doctor, setDoctor] = useState({
-//   //   name: "",
-//   //   dob: "",
-//   //   fees: "",
-//   // });
-//   // const [revenueShareAttributes, setRevenueShareAttributes] = useState({
-//   //   user_share: 0,
-//   // });
-
-//   // const handleDoctorChange = event => {
-//   //   var identifier = event.target.name;
-//   //   var value = event.target.value;
-//   //   setDoctor({ ...doctor, [identifier]: value });
-//   // };
-
-//   // const handleRevenueShareAttributeChange = event => {
-//   //   var identifier = event.target.name;
-//   //   var value = event.target.value;
-//   //   setRevenueShareAttributes({
-//   //     ...revenueShareAttributes,
-//   //     [identifier]: value,
-//   //   });
-//   // };
-
-//   // const addDoctorToParams = formData => {
-//   //   for (const key in doctor) {
-//   //     formData.append(`doctor[${key}]`, doctor[key]);
-//   //   }
-//   // };
-
-//   // const addRevenueShareAttributesToParams = formData => {
-//   //   for (const key in revenueShareAttributes) {
-//   //     formData.append(
-//   //       `doctor[revenue_share_attributes][${key}]`,
-//   //       revenueShareAttributes[key]
-//   //     );
-//   //   }
-//   // };
-// // const img = []
-//   // const fileInput = createRef();
-//   // const addDocumentsToParams = formData => {
-//   //   for (let i = 0; i < fileInput.current.files.length; i++) {
-//   //     console.log("doctor[documents][]", fileInput.current.files[i])
-//   //    formData.append("doctor[documents][]", fileInput.current.files[i]);
-//   //   }
-//   // };
-
-//   // const handleSubmit = event => {
-//   //   event.preventDefault();
-//   //   var formData = new FormData();
-//   //   console.log(formData)
-//   //   addDoctorToParams(formData);
-//   //   addRevenueShareAttributesToParams(formData);
-//   //   // able to do this because appending is independent
-//   //   addDocumentsToParams(formData);
-//   //   console.log(formData.get("doctor[documents][]"))
-    
-//   //   fetch("http://form-rails-api.herokuapp.com/doctors", {
-//   //     method: "POST",
-//   //     headers: {},
-//   //     body: formData,
-//   //   }).then(response =>
-//   //     response.ok ? redirect() : alert("Not created change accordingly")
-//   //   );
-//   // };
-
-//   const onSubmit = data => {
-
-//   var formData = new FormData();
-//   formData.append('doctor[name]',data.name)
-//   formData.append('doctor[dob]',data.date)
-//   formData.append('doctor[fees]',data.fees)
-//   formData.append('doctor[revenue_share_attributes][user_share]',data.user_share)
-//   formData.append('doctor[documents][]',data.file_uploads)
-//   console.log(formData)
-//     console.log(formData.get('doctor[documents][]'))
-//   // console.log(data.file_uploads[0].name)
-// // console.log(sizeof(formData))
-//   // console.log(Buffer.from(formData).length )
-  
-
-//   // axios.post('http://form-rails-api.herokuapp.com/doctors',{body: formData},
-  
-//   // { headers: {} }).then(response => {
-//   //     // setState(response.data);
-//   //     // response.ok ? redirect() : alert("Not created change accordingly")
-//   //     console.log(response.data)
-    
-
-//   // }).catch(error => {
-//   //   if (error.response.data != "") {
-//   //     alert(error.response.data.error);
-//   //   } else {
-//   //     alert(error.response.statusText);
-//   //   }
-//   // });
-//   fetch("http://form-rails-api.herokuapp.com/doctors", {
-//       method: "POST",
-//       headers: {
-//         // "Content-Type": "multipart/form-data"
-//       },
-//       body: formData,
-//     }).then(response =>
-//       response.ok ? redirect() : alert("Not created change accordingly")
-//     );
-//    console.log(data)
-// 	};
-
-//   return (
-//     // To make this cleaner the form input and label fields can be moved to
-//     // their own component and the state can be stored in a Redux Store to
-//     // simplify the process of form submission
-    
-//     // <form onSubmit={handleSubmit}>
-//     //   <label>Doctor Name:</label>
-//     //   <input
-//     //     name="name"
-//     //     type="text"
-//     //     value={doctor.name}
-//     //     onChange={handleDoctorChange}
-//     //   />
-//     //   <label>Date of Birth</label>
-//     //   <input
-//     //     name="dob"
-//     //     type="date"
-//     //     value={doctor.dob}
-//     //     onChange={handleDoctorChange}
-//     //   />
-//     //   <label>Fees</label>
-//     //   <input
-//     //     name="fees"
-//     //     type="number"
-//     //     value={doctor.fees}
-//     //     onChange={handleDoctorChange}
-//     //   />
-//     //   <br />
-//     //   <label>Revenue Share Details</label>
-//     //   <input
-//     //     name="user_share"
-//     //     type="number"
-//     //     value={revenueShareAttributes.user_share}
-//     //     onChange={handleRevenueShareAttributeChange}
-//     //   />
-//     //   <br />
-//     //   <label>Images & Documents</label>
-//     //   <input id="file-uploads" type="file" multiple={true} ref={fileInput} />
-//     //   <br />
-//     //   <input type="submit" value="Submit" />
-//     // </form>
-//     <div>
-//       <form onSubmit={handleSubmit(onSubmit)}>
-// 			<Grid container spacing={2}>
-// 				<Grid item xs={12} sm={9} md={9} >
-// 					{/* <Card style={{ marginTop: '23px' }}> */}
-			
-// 						{/* <CardBody> */}
-// 								<Grid container spacing={2}>
-// 									<Grid item xs={12} sm={12} md={12} >
-// 									<Controller
-// 											as={<TextField />}
-// 											name="name"
-// 											control={control}
-// 											defaultValue=""
-// 											label="Full Name"
-// 											type="text"
-// 											fullWidth
-// 											/>
-// 									</Grid>
-// 									<Grid item xs={12} sm={6} md={6} >
-// 									<Controller
-// 											as={<input />}
-// 											name="date"
-// 											control={control}
-// 											// label="Full Name"
-// 											type="date"
-											
-// 											/>
-// 									</Grid>
-// 									<Grid item xs={12} sm={6} md={6} >
-// 									<Controller
-// 										as={<TextField />}
-// 										name="fees"
-// 										control={control}
-// 										defaultValue=""
-// 										label="Fees"
-// 										type="number"
-// 										fullWidth
-// 									/>
-// 									</Grid>
-//                   <Grid item xs={12} sm={6} md={6} >
-// 									<Controller
-// 										as={<TextField />}
-// 										name="user_share"
-// 										control={control}
-// 										defaultValue=""
-// 										label="Revenue Share Details"
-// 										type="number"
-// 										fullWidth
-// 									/>
-// 									</Grid>
-//                   <Grid item xs={12} sm={6} md={6} >
-//                   <input
-//                   type="file"
-//                   accept="image/png, image/jpeg,application/pdf"
-//                   ref={register()}
-//                   name='file_uploads'
-
-
-//                 />
-// 									</Grid>
-// 								</Grid>
-// 								{/* <CardFooter style={{ float: 'right' }}> */}
-// 									<Button type="submit"  >Update</Button>
-// 								{/* </CardFooter> */}
-						
-// 						{/* </CardBody> */}
-// 					{/* </Card> */}
-// 				</Grid>
-// 			</Grid>
-// 			</form>
-//     </div>
-//   );
-// };
-
-// export default DoctorForm;
-
 
 import React, { useState, useEffect } from "react";
 // @material-ui/core components
@@ -313,7 +75,7 @@ const styles = theme => ({
 
 const useStyles = makeStyles(styles);
 
-const CreateMso = (props) => {
+const CreateMso = ({ redirect }) => {
 	const classes = useStyles();
 	const [username, setUser] = useState();
 	const [genders, setGender] = useState([]);
@@ -325,8 +87,8 @@ const CreateMso = (props) => {
 
 	const { handleSubmit, errors, control, watch, getValues, register, setValue } = useForm({
 		defaultValues: {
-			documents: [{ document_id: "", document: '' }],
-			qualifications: [{ document_id: "", Field: "", document: '' }]
+			documents: [{ document_id: "",field: '', document: '' }],
+			qualifications: [{ qualification_id: "", field: '', document: '' }]
 		}
 	});
 
@@ -439,55 +201,45 @@ const CreateMso = (props) => {
 		for (let i = 0; i < data.qualifications.length; i++) {
 
 			var value = certificates.filter(function (item) {
-				return item.key == data.qualifications[i].document_id
+				return item.key == data.qualifications[i].qualification_id
 			})
 			data.qualifications[i].field = value[0].value
 		}
 
-		var user = {
-			name: data.name,
-			email: data.email,
-			mobile: data.mobile,
-			gender: data.gender,
-			address: data.address,
-			city_id: data.city_id,
-			state_id: data.state_id,
-			// country_id: 99,
-			pincode: data.pincode,
-			password: data.encrypted_password,
-			password_confirmation: data.confirm_password,
-			default_language: data.default_language,
-			store_code: data.store_code,
-			profile_photo: data.file_uploads[0],
-			username: data.username,
-			centre: {
-				centre_title: data.centre_title,
-				centre_address: data.centre_address,
-				type: "mso",
-				fixed_payment: data.fixed_payment,
-				revenue_share_consult: data.revenue_share_consult
-			},
-			qualifications: data.qualifications,
-			documents: data.documents,
-			role: 'mso_owner'
-		};
+	var formData = new FormData();
+	formData.append('user[name]',data.name)
+	formData.append('user[email]',data.email)
+	formData.append('user[mobile]',data.mobile)
+	formData.append('user[gender]',data.gender)
+	formData.append('user[address]',data.address)
+	formData.append('user[city_id]',data.city_id)
+	formData.append('user[state_id]',data.state_id)
+	formData.append('user[dob]',data.dob)
+	formData.append('user[pincode]',data.pincode)
+	formData.append('user[password]',data.password)
+	formData.append('user[password_confirmation]',data.password_confirmation)
+	formData.append('user[default_language]',data.default_language)
+	formData.append('user[store_code]',data.store_code)
+	formData.append('user[profile_photo]',data.profile_photo[0])
+	formData.append('user[username]',data.username)
+	formData.append('user[qualifications]',data.qualifications)
+	formData.append('user[documents]',data.documents)
+	formData.append('user[role]','mso_owner')
+	formData.append('user[center][center_title]',data.centre_title)
+	formData.append('user[center][centre_address]',data.centre_address)
+	formData.append('user[center][type]','mso')
+	formData.append('user[center][fixed_payment]',data.fixed_payment)
+	formData.append('user[center][revenue_share_consult]',data.revenue_share_consult)
 
-
-		console.log(user);
-	// 	if (localStorage.getItem("jwt") != '' || localStorage.getItem("jwt") !== undefined) {
-	// 		let token = "Bearer " + localStorage.getItem("jwt");
-	// 	axios.post('/users', { user: user },{ headers: { Authorization: token }}).then(response => {
-	// 		console.log(response);
-	// 		alert(response.data.message);
-	// 		// props.history.goBack()
-	// 	}).catch(error => {
-	// 		if (error.response.data != "") {
-	// 			alert(error.response.data.error);
-	// 		} else {
-	// 			alert(error.response.statusText);
-	// 		}
-	// 	});
-	// }
+		console.log(data);
+		fetch("/users", {
+			      method: "POST",
+			      headers: {
+			      },
+			      body: formData,
+			    }).then(response =>
+			      response.ok ? redirect() : alert("Not created change accordingly")
+			    );
 }
 
 
@@ -565,7 +317,7 @@ const CreateMso = (props) => {
 										<input
 											type="file"
 											accept="image/*"
-											name='file_uploads'
+											name='profile_photo'
 											ref={register()}
 											style={{
 												// display: "none"
@@ -988,7 +740,7 @@ const CreateMso = (props) => {
 																		})}
 																	</Select>
 																}
-																name={`qualifications[${index}].document_id`}
+																name={`qualifications[${index}].qualification_id`}
 																control={control}
 																defaultValue=""
 
@@ -1015,7 +767,7 @@ const CreateMso = (props) => {
 										<section>
 											<AddCircleIcon
 												onClick={() => {
-													qualificationsAppend({ document_id: "", document: "" });
+													qualificationsAppend({ document_id: "",field: '', document: "" });
 												}}
 											/>
 										</section>
@@ -1072,7 +824,7 @@ const CreateMso = (props) => {
 										<section>
 											<AddCircleIcon
 												onClick={() => {
-													documentsAppend({ document_id: "", document: "" });
+													documentsAppend({ document_id: "",field: '', document: "" });
 												}}
 											/>
 										</section>
@@ -1092,17 +844,18 @@ const CreateMso = (props) => {
 
 export default CreateMso;
 
+
 const optionsdata = [
-	{ key: '1', value: 'Aadhaar Card' },
-	{ key: '2', value: 'Pan Card' },
-	{ key: '3', value: 'Pass Book' }
+	{ key: '1', value: "Aadhaar Card" },
+	{ key: '2', value: "Driving License" },
+	{ key: '3', value: "Bank Passbook" }
 ]
 
 const certificates = [
-	{ key: '1', value: 'High School' },
-	{ key: '2', value: 'Intermediate' },
-	{ key: '3', value: 'Diploma' },
-	{ key: '4', value: 'PGDM' },
-	{ key: '5', value: 'Graduation' },
-	{ key: '6', value: 'Post Graduation' }
+	{ key: '1', value: "High School" },
+	{ key: '2', value: "Intermediate" },
+	{ key: '3', value: "Diploma" },
+	{ key: '4', value: "Post Graduate Diploma" },
+	{ key: '5', value: "Graduation" },
+	{ key: '6', value: "Post Graduation" }
 ]
