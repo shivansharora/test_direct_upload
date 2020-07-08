@@ -228,14 +228,15 @@ const CreateMso = ({ redirect }) => {
 	formData.append('user[mobile]',data.mobile)
 	formData.append('user[gender]',data.gender)
 	formData.append('user[address]',data.address)
-	formData.append('user[city_id]',data.city_id)
+	// formData.append('user[city_id]',data.city_id)
+	formData.append('user[city_id]','135')
 	formData.append('user[state_id]',data.state_id)
-	formData.append('user[dob]',data.dob)
+	// formData.append('user[dob]',data.dob)
+	formData.append('user[dob]', '1996-05-16')
 	formData.append('user[pincode]',data.pincode)
 	formData.append('user[password]',data.password)
 	formData.append('user[password_confirmation]',data.password_confirmation)
 	formData.append('user[default_language]',data.default_language)
-	formData.append('user[store_code]',data.store_code)
 	formData.append('user[profile_photo]',data.profile_photo[0])
 	formData.append('user[username]',data.username)
 
@@ -252,13 +253,14 @@ const CreateMso = ({ redirect }) => {
 	  })
 
 	formData.append('user[role]','mso_owner')
+	formData.append('user[center][store_code]',data.store_code)
 	formData.append('user[center][center_title]',data.centre_title)
 	formData.append('user[center][centre_address]',data.centre_address)
-	formData.append('user[center][type]','mso')
+	formData.append('user[center][centre_type]','mso')
 	formData.append('user[center][fixed_payment]',data.fixed_payment)
-	formData.append('user[center][revenue_share_consult]',data.revenue_share_consult)
+	formData.append('user[center][revenue_share]',data.revenue_share_consult)
 
-	fetch("http://localhost:4000/doctors", {
+	fetch("/users", {
 				method: "POST",
 				headers: {
 				},
@@ -568,7 +570,7 @@ const CreateMso = ({ redirect }) => {
 											</Select>
 										}
 										name="city_id"
-										rules={{ required: "City is required" }}
+										// rules={{ required: "City is required" }}
 										control={control}
 										defaultValue=""
 										/>
