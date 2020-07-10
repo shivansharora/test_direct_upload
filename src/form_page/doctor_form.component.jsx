@@ -89,8 +89,8 @@ const CreateMso = ({ redirect }) => {
 
 	const { handleSubmit, errors, control, watch, getValues, register, setValue } = useForm({
 		defaultValues: {
-			documents: [{ document_id: "",field: '', document: '' }],
-			qualifications: [{ qualification_id: "", field: '', document: '' }]
+			documents: [{ id_proof_id: "",documents: '' }],
+			qualifications: [{ qualification_id: "", documents: '' }]
 		}
 	});
 
@@ -189,29 +189,28 @@ const CreateMso = ({ redirect }) => {
 	const onSubmit = data => {
 
 		for (let i = 0; i < data.documents.length; i++) {
-
-			var fileTo = data.documents[i].document[0];
-				data.documents[i].document = fileTo
+			if(data.documents[i].documents !== undefined) {
+				var fileTo = data.documents[i].documents[0];
+				data.documents[i].documents = fileTo
+			}
 
 		}
 
 		for (let i = 0; i < data.documents.length; i++) {
 
 			var value = optionsdata.filter(function (item) {
-				return item.key == data.documents[i].document_id
+				return item.key == data.documents[i].id_proof_id
 			})
-			data.documents[i].field = value[0].value
+			// data.documents[i].field = value[0].value
 		}
 
-		// console.log(data.qualifications[0].document[0])
+		// console.log(data.qualifications[0].documents[0])
 
 		for (let j = 0; j < data.qualifications.length; j++) {
-
-			var fileToQuali = data.qualifications[j].document[0];
-
-		    data.qualifications[j].document = fileToQuali
-
-
+			if(data.qualifications[j].documents !== undefined) {
+				var fileToQuali = data.qualifications[j].documents[0];
+		    data.qualifications[j].documents = fileToQuali
+		  }
 		}
 
 		for (let i = 0; i < data.qualifications.length; i++) {
@@ -219,7 +218,7 @@ const CreateMso = ({ redirect }) => {
 			var value = certificates.filter(function (item) {
 				return item.key == data.qualifications[i].qualification_id
 			})
-			data.qualifications[i].field = value[0].value
+			// data.qualifications[i].field = value[0].value
 		}
 
 	var formData = new FormData();
@@ -234,31 +233,35 @@ const CreateMso = ({ redirect }) => {
 	// formData.append('user[dob]',data.dob)
 	formData.append('user[dob]', '1996-05-16')
 	formData.append('user[pincode]',data.pincode)
-	formData.append('user[password]',data.password)
-	formData.append('user[password_confirmation]',data.password_confirmation)
+	formData.append('user[password]',data.encrypted_password)
+	formData.append('user[password_confirmation]',data.confirm_password)
 	formData.append('user[default_language]',data.default_language)
-	formData.append('user[profile_photo]',data.profile_photo[0])
 	formData.append('user[username]',data.username)
 
-	  data.documents.map(obj => {
+	const profile_photo = (data.profile_photo[0] !== undefined) ? data.profile_photo[0] : "";
+	
+	formData.append('user[profile_photo]', profile_photo)
+
+  data.documents.map(obj => {
 		Object.keys(obj).forEach((key) => {
-		  formData.append(`user[documents][${obj.document_id}][${key}]`, obj[key]);
+		  formData.append(`user[user_id_proofs_attributes][${obj.id_proof_id}][${key}]`, obj[key]);
 		});
 	})
 
 	data.qualifications.map(obj => {
-		  Object.keys(obj).forEach((key) => {
-			formData.append(`user[qualifications][${obj.qualification_id}][${key}]`, obj[key]);
-		  });
-	  })
+	  Object.keys(obj).forEach((key) => {
+			formData.append(`user[user_qualifications_attributes][${obj.qualification_id}][${key}]`, obj[key]);
+	  });
+  })
 
 	formData.append('user[role]','mso_owner')
-	formData.append('user[center][store_code]',data.store_code)
-	formData.append('user[center][center_title]',data.centre_title)
-	formData.append('user[center][centre_address]',data.centre_address)
-	formData.append('user[center][centre_type]','mso')
-	formData.append('user[center][fixed_payment]',data.fixed_payment)
-	formData.append('user[center][revenue_share]',data.revenue_share_consult)
+	// formData.append('user[centre_attributes][store_code]',data.store_code)
+	// formData.append('user[centre_attributes][centre_title]',data.centre_title)
+	// formData.append('user[centre_attributes][centre_address]',data.centre_address)
+	// formData.append('user[centre_attributes][centre_type]','mso')
+	// formData.append('user[centre_attributes][fixed_payment]',data.fixed_payment)
+	// formData.append('user[centre_attributes][revenue_share]',data.revenue_share_consult)
+	formData.append('user[centre_id]', '3')
 
 	fetch("/users", {
 				method: "POST",
@@ -346,7 +349,7 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.name)}
 											name="name"
-											rules={{ required: "MSO Name is required" }}
+											// rules={{ required: "MSO Name is required" }}
 											control={control}
 											defaultValue=""
 											label="Full Name"
@@ -364,14 +367,14 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.mobile)}
 											name="mobile"
-											rules={{
-												required: "Mobile Number is required",
-												pattern: {
-													value: /^[0-9]*$/,
-													message: "Only Numbers are allowed"
-												},
-												minLength: 10
-											}}
+											// rules={{
+											// 	required: "Mobile Number is required",
+											// 	pattern: {
+											// 		value: /^[0-9]*$/,
+											// 		message: "Only Numbers are allowed"
+											// 	},
+											// 	minLength: 10
+											// }}
 											control={control}
 											defaultValue=""
 											label="Mobile"
@@ -392,13 +395,13 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.email)}
 											name="email"
-											rules={{
-												required: "Email is required",
-												pattern: {
-													value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
-													message: "Invalid email address"
-												}
-											}}
+											// rules={{
+											// 	required: "Email is required",
+											// 	pattern: {
+											// 		value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
+											// 		message: "Invalid email address"
+											// 	}
+											// }}
 											control={control}
 											// onChange={handleEmail}
 											defaultValue=""
@@ -413,7 +416,7 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.username)}
 											name='username'
-											rules={{ required: "User Name is required" }}
+											// rules={{ required: "User Name is required" }}
 											control={control}
 											defaultValue=''
 											label="User Name"
@@ -430,7 +433,7 @@ const CreateMso = ({ redirect }) => {
 											valueName="selected"
 											onChange={([selected]) => selected}
 											name="dob"
-											rules={{ required: "DOB is required" }}
+											// rules={{ required: "DOB is required" }}
 											filterDate={(date) => {
 												return moment() > date;
 											}}
@@ -465,7 +468,7 @@ const CreateMso = ({ redirect }) => {
 													</Select>
 												}
 												name="default_language"
-												rules={{ required: "Default Language is required" }}
+												// rules={{ required: "Default Language is required" }}
 												control={control}
 												defaultValue=""
 											/>
@@ -494,7 +497,7 @@ const CreateMso = ({ redirect }) => {
 													</Select>
 												}
 												name="gender"
-												rules={{ required: "Gender is required" }}
+												// rules={{ required: "Gender is required" }}
 												control={control}
 												defaultValue=""
 											/>
@@ -508,7 +511,7 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.address)}
 											name="address"
-											rules={{ required: "Address is required" }}
+											// rules={{ required: "Address is required" }}
 											control={control}
 											defaultValue=""
 											label="Address"
@@ -538,7 +541,7 @@ const CreateMso = ({ redirect }) => {
 												</Select>
 												}
 												name="state_id"
-												rules={{ required: "State is required" }}
+												// rules={{ required: "State is required" }}
 												control={control}
 												onChange={([selected]) => {
 												getCity(selected.target.value);
@@ -584,14 +587,14 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.pincode)}
 											name="pincode"
-											rules={{
-												required: "Pincode is required",
-												pattern: {
-													value: /^[0-9]*$/,
-													message: "Only Numbers are allowed"
-												},
-												minLength: 6
-											}}
+											// rules={{
+											// 	required: "Pincode is required",
+											// 	pattern: {
+											// 		value: /^[0-9]*$/,
+											// 		message: "Only Numbers are allowed"
+											// 	},
+											// 	minLength: 6
+											// }}
 											control={control}
 											defaultValue=""
 											label="Pincode"
@@ -612,7 +615,7 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.centre_title)}
 											name="centre_title"
-											rules={{ required: "Centre Title is required" }}
+											// rules={{ required: "Centre Title is required" }}
 											control={control}
 											defaultValue=""
 											label="Centre Title"
@@ -626,7 +629,7 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.centre_address)}
 											name="centre_address"
-											rules={{ required: "Centre Address is required" }}
+											// rules={{ required: "Centre Address is required" }}
 											control={control}
 											defaultValue=""
 											label="Centre Address"
@@ -640,7 +643,7 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.fixed_payment)}
 											name="fixed_payment"
-											rules={{ required: "Fixed Payment is required" }}
+											// rules={{ required: "Fixed Payment is required" }}
 											control={control}
 											defaultValue=""
 											label="Fixed Payment"
@@ -655,7 +658,7 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.revenue_share_consult)}
 											name="revenue_share_consult"
-											rules={{ required: "Revenue Share Consult is required" }}
+											// rules={{ required: "Revenue Share Consult is required" }}
 											control={control}
 											defaultValue=""
 											label="Revenue Share Consult"
@@ -671,7 +674,7 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.store_code)}
 											name="store_code"
-											rules={{ required: "Store Code is required" }}
+											// rules={{ required: "Store Code is required" }}
 											control={control}
 											defaultValue=""
 											label="Store Code"
@@ -685,7 +688,7 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.encrypted_password)}
 											name="encrypted_password"
-											rules={{ required: "Password is required" }}
+											// rules={{ required: "Password is required" }}
 											control={control}
 											defaultValue=""
 											label="Password"
@@ -699,16 +702,16 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.confirm_password)}
 											name="confirm_password"
-											rules={{
-												required: "Confirm Password is required",
-												validate: value => {
-													if (value === getValues()["encrypted_password"]) {
-														return true;
-													} else {
-														return "Passwords do not match";
-													}
-												}
-											}}
+											// rules={{
+											// 	required: "Confirm Password is required",
+											// 	validate: value => {
+											// 		if (value === getValues()["encrypted_password"]) {
+											// 			return true;
+											// 		} else {
+											// 			return "Passwords do not match";
+											// 		}
+											// 	}
+											// }}
 											control={control}
 											defaultValue=""
 											label="Confirm Password"
@@ -768,8 +771,8 @@ const CreateMso = ({ redirect }) => {
                         <input
 															type="file"
 															accept="image/png, image/jpeg,application/pdf"
-															ref={register({ required: true })}
-															name={`qualifications[${index}].document`}
+															// ref={register({ required: true })}
+															name={`qualifications[${index}].documents`}
 
 
 														/>
@@ -785,7 +788,7 @@ const CreateMso = ({ redirect }) => {
 										<section>
 											<AddCircleIcon
 												onClick={() => {
-													qualificationsAppend({ document_id: "",field: '', document: "" });
+													qualificationsAppend({ id_proof_id: "",documents: "" });
 												}}
 											/>
 										</section>
@@ -816,7 +819,7 @@ const CreateMso = ({ redirect }) => {
 																		})}
 																	</Select>
 																}
-																name={`documents[${index}].document_id`}
+																name={`documents[${index}].id_proof_id`}
 																control={control}
 																defaultValue=""
 
@@ -826,8 +829,8 @@ const CreateMso = ({ redirect }) => {
                         <input
 															type="file"
 															accept="image/png, image/jpeg,application/pdf"
-															ref={register({ required: true })}
-															name={`documents[${index}].document`}
+															// ref={register({ required: true })}
+															name={`documents[${index}].documents`}
 
 														/>
 
@@ -842,7 +845,7 @@ const CreateMso = ({ redirect }) => {
 										<section>
 											<AddCircleIcon
 												onClick={() => {
-													documentsAppend({ document_id: "",field: '', document: "" });
+													documentsAppend({ id_proof_id: "",documents: "" });
 												}}
 											/>
 										</section>
