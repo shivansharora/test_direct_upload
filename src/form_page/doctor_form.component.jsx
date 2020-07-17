@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect, createRef } from "react";
 // @material-ui/core components
 import { makeStyles, withStyles } from "@material-ui/core/styles";
 import Grid from '@material-ui/core/Grid';
 
 import Button from '@material-ui/core/Button';
+import { DirectUpload } from "@rails/activestorage";
 
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import HighlightOffIcon from '@material-ui/icons/HighlightOff';
@@ -29,9 +29,10 @@ import {
 	InputLabel,
 	FormHelperText,
 	Checkbox,
-  FormControlLabel,
-  Card,
-  CardContent  
+	FormControlLabel,
+	Card,
+	CardContent,
+	Avatar
 
 
 } from '@material-ui/core';
@@ -89,7 +90,7 @@ const CreateMso = ({ redirect }) => {
 
 	const { handleSubmit, errors, control, watch, getValues, register, setValue } = useForm({
 		defaultValues: {
-			documents: [{ id_proof_id: "",documents: '' }],
+			documents: [{ id_proof_id: "", documents: '' }],
 			qualifications: [{ qualification_id: "", documents: '' }]
 		}
 	});
@@ -176,108 +177,231 @@ const CreateMso = ({ redirect }) => {
 	})
 
 	const getCity = state_id => {
-    console.log(state_id)
+		console.log(state_id)
 		try {
-		  axios.get(`http://35.154.188.137/api/v1/get_cities/${state_id}`).then(response => {
-			setCities(response.data);
-			console.log(response.data);
-		  });
-		} catch (error) {}
-		};
-		
+			axios.get(`http://35.154.188.137/api/v1/get_cities/${state_id}`).then(response => {
+				setCities(response.data);
+				console.log(response.data);
+			});
+		} catch (error) { }
+	};
+	const fileInput = React.useRef(null);
+	const handleImage = e => {
+		const [file] = e.target.files;
+		// console.log(file)
+
+		if (file) {
+			const reader = new FileReader();
+			const { current } = uploadedImage;
+			current.file = file;
+			reader.onload = e => {
+				current.src = e.target.result;
+
+
+			};
+			reader.readAsDataURL(file);
+		}
+	};
+
+
+
+	const promises = [];
+	const handleDocumentUpload = (document) => {
+		const DocumentFiles = [];
+		for (let j = 0; j < document.length; j++) {
+			var fileToQuali = document[j].documents[0];
+			DocumentFiles.push(fileToQuali)
+		}
+
+		return new Promise((resolve, reject) => {
+			for (let i = 0; i < DocumentFiles.length; i++) {
+				promises.push(uploadFiles(DocumentFiles[i], document[i].id_proof_id));
+			}
+		});
+	};
+	const handleQualificationUpload = (document) => {
+		const DocumentFiles = [];
+		for (let j = 0; j < document.length; j++) {
+			var fileTo = document[j].documents[0];
+			DocumentFiles.push(fileTo)
+		}
+		console.log(DocumentFiles[0])
+		if (DocumentFiles[0] !== undefined) {
+			for (let i = 0; i < DocumentFiles.length; i++) {
+				console.log(document[i].qualification_id)
+				// var allowed_extensions = new Array("jpg","png","jpeg","pdf");
+				promises.push(uploadQualification(DocumentFiles[i], document[i].qualification_id));
+			}
+		}
+	};
+
+	const handleImageUpload = (image) => {
+		console.log(image.length)
+		if (image.length !== 0) {
+			promises.push(uploadFile(image[0]))
+		}
+	}
+
+	const uploadFile = (file) => {
+
+		return new Promise((resolve, reject) => {
+			const URL =
+				"http://form-rails-api.herokuapp.com/rails/active_storage/direct_uploads";
+			const upload = new DirectUpload(file, URL);
+			upload.create((error, blob) => {
+				if (error) {
+					reject(error);
+				} else {
+					const hiddenField = document.createElement("input");
+					hiddenField.setAttribute("type", "hidden");
+					hiddenField.setAttribute("value", blob.signed_id);
+					hiddenField.id = `profile_pic`;
+					document.querySelector("form").appendChild(hiddenField);
+					resolve("Success");
+				}
+			});
+		});
+	};
+
+
+	const uploadFiles = (file, id) => {
+
+		return new Promise((resolve, reject) => {
+			const URL =
+				"http://form-rails-api.herokuapp.com/rails/active_storage/direct_uploads";
+			const upload = new DirectUpload(file, URL, id);
+			upload.create((error, blob) => {
+				if (error) {
+					reject(error);
+				} else {
+					const hiddenField = document.createElement("input");
+					hiddenField.setAttribute("type", "hidden");
+					hiddenField.setAttribute("value", blob.signed_id + '_' + id);
+					// hiddenField.id = `document`;
+					hiddenField.id = `${id}`;
+					hiddenField.setAttribute("class", `document_proof`);
+					document.querySelector("form").appendChild(hiddenField);
+					resolve("Success");
+				}
+			});
+		});
+	};
+
+	const uploadQualification = (file, id) => {
+		return new Promise((resolve, reject) => {
+			const URL =
+				"http://form-rails-api.herokuapp.com/rails/active_storage/direct_uploads";
+			const upload = new DirectUpload(file, URL, id);
+			upload.create((error, blob) => {
+				if (error) {
+					reject(error);
+				} else {
+					const hiddenField = document.createElement("input");
+					hiddenField.setAttribute("type", "hidden");
+					hiddenField.setAttribute("value", blob.signed_id + '_' + id);
+					hiddenField.id = `${id}`;
+					hiddenField.setAttribute("class", `qualification_proof`);
+					document.querySelector("form").appendChild(hiddenField);
+					resolve("Success");
+				}
+			});
+		});
+	};
 
 	const onSubmit = data => {
+		handleImageUpload(imageUploader.current.files)
+		handleDocumentUpload(data.documents)
+		handleQualificationUpload(data.qualifications)
 
-		for (let i = 0; i < data.documents.length; i++) {
-			if(data.documents[i].documents !== undefined) {
-				var fileTo = data.documents[i].documents[0];
-				data.documents[i].documents = fileTo
-			}
+		Promise.all(promises)
+			.then(() => {
+				var idProofElements = document.getElementsByClassName(`document_proof`)
+				var idProofFiles = []
+				for (let i = 0; i < idProofElements.length; i++) {
+					console.log(idProofElements[i].value)
+					idProofFiles.push(idProofElements[i].value)
+				}
+				for (let i = 0; i < data.documents.length; i++) {
+					var value = idProofFiles.filter(function (item) {
+						item.split('').reverse().join('')
+						return item.split('_').pop() == data.documents[i].id_proof_id
+					})
+					data.documents[i].documents = value[0].split('_').shift()
 
-		}
+				}
 
-		for (let i = 0; i < data.documents.length; i++) {
+				var qualificationElements = document.getElementsByClassName(`qualification_proof`)
+				var qualificationFiles = []
+				for (let i = 0; i < qualificationElements.length; i++) {
+					qualificationFiles.push(qualificationElements[i].value)
+				}
+				if (data.qualifications[0].qualification_id) {
+					for (let i = 0; i < data.qualifications.length; i++) {
+						var value = qualificationFiles.filter(function (item) {
+							// console.log(item.split('_').pop())
+							// console.log(item.split('').reverse().join(''))
+							// console.log(item.split('_').pop())
+							item.split('').reverse().join('')
+							return item.split('_').pop() == data.qualifications[i].qualification_id
+						})
+						data.qualifications[i].documents = value[0].split('_').shift()
+					}
+				} else {
+					data.qualifications = ''
+				}
+				var formData = new FormData();
 
-			var value = optionsdata.filter(function (item) {
-				return item.key == data.documents[i].id_proof_id
-			})
-			// data.documents[i].field = value[0].value
-		}
+				formData.append('user[name]', data.name)
+				formData.append('user[email]', data.email)
+				formData.append('user[mobile]', data.mobile)
+				formData.append('user[gender]', data.gender)
+				formData.append('user[address]', data.address)
+				formData.append('user[city_id]', '135')
+				formData.append('user[state_id]', data.state_id)
+				formData.append('user[dob]', data.dob)
+				formData.append('user[pincode]', data.pincode)
+				formData.append('user[password]', data.encrypted_password)
+				formData.append('user[password_confirmation]', data.confirm_password)
+				formData.append('user[default_language]', data.default_language)
+				if (imageUploader.current.files.length !== 0) {
+					formData.append('user[profile_photo]', document.getElementById(`profile_pic`).value)
+				}
 
-		// console.log(data.qualifications[0].documents[0])
+				formData.append('user[username]', data.username)
+				formData.append('user[centre_id]', '2')
+				formData.append('user[role]', 'mso_owner')
 
-		for (let j = 0; j < data.qualifications.length; j++) {
-			if(data.qualifications[j].documents !== undefined) {
-				var fileToQuali = data.qualifications[j].documents[0];
-		    data.qualifications[j].documents = fileToQuali
-		  }
-		}
+				data.documents.map(obj => {
+					Object.keys(obj).forEach((key) => {
+						formData.append(`user[user_id_proofs_attributes][${obj.id_proof_id}][${key}]`, obj[key]);
+					});
+				})
 
-		for (let i = 0; i < data.qualifications.length; i++) {
+				if (data.qualifications) {
+					data.qualifications.map(obj => {
+						Object.keys(obj).forEach((key) => {
+							formData.append(`user[user_qualifications_attributes][${obj.qualification_id}][${key}]`, obj[key]);
+						});
+					})
+				}
 
-			var value = certificates.filter(function (item) {
-				return item.key == data.qualifications[i].qualification_id
-			})
-			// data.qualifications[i].field = value[0].value
-		}
+				for (let pair of formData.entries()) {
+					console.log(pair[0] + ': ' + pair[1]);
+				}
 
-	var formData = new FormData();
-	formData.append('user[name]',data.name)
-	formData.append('user[email]',data.email)
-	formData.append('user[mobile]',data.mobile)
-	formData.append('user[gender]',data.gender)
-	formData.append('user[address]',data.address)
-	// formData.append('user[city_id]',data.city_id)
-	formData.append('user[city_id]','135')
-	formData.append('user[state_id]',data.state_id)
-	// formData.append('user[dob]',data.dob)
-	formData.append('user[dob]', '1996-05-16')
-	formData.append('user[pincode]',data.pincode)
-	formData.append('user[password]',data.encrypted_password)
-	formData.append('user[password_confirmation]',data.confirm_password)
-	formData.append('user[default_language]',data.default_language)
-	formData.append('user[username]',data.username)
-
-	const profile_photo = (data.profile_photo[0] !== undefined) ? data.profile_photo[0] : "";
-	
-	formData.append('user[profile_photo]', profile_photo)
-
-  data.documents.map(obj => {
-		Object.keys(obj).forEach((key) => {
-		  formData.append(`user[user_id_proofs_attributes][${obj.id_proof_id}][${key}]`, obj[key]);
-		});
-	})
-
-	data.qualifications.map(obj => {
-	  Object.keys(obj).forEach((key) => {
-			formData.append(`user[user_qualifications_attributes][${obj.qualification_id}][${key}]`, obj[key]);
-	  });
-  })
-
-	formData.append('user[role]','mso_owner')
-	// formData.append('user[centre_attributes][store_code]',data.store_code)
-	// formData.append('user[centre_attributes][centre_title]',data.centre_title)
-	// formData.append('user[centre_attributes][centre_address]',data.centre_address)
-	// formData.append('user[centre_attributes][centre_type]','mso')
-	// formData.append('user[centre_attributes][fixed_payment]',data.fixed_payment)
-	// formData.append('user[centre_attributes][revenue_share]',data.revenue_share_consult)
-	formData.append('user[centre_id]', '3')
-
-	fetch("/users", {
-				method: "POST",
-				headers: {
-				},
-				body: formData,
-			}).then(response =>
-				response.ok ? redirect() : alert("Not created change accordingly")
-			);
-
-			// for (let pair of formData.entries()) {
-			// 	console.log(pair[0] + ': ' + pair[1]); 
-			// }
-}
+				fetch("http://form-rails-api.herokuapp.com/users", {
+					method: "POST",
+					headers: {
+					},
+					body: formData,
+				}).then(response =>
+					response.ok ? console.log(response) : alert("Not created change accordingly")
+				);
+				console.log(data)
+			}).catch(error => console.log(error));
 
 
+	}
 
 	const Alpha = (event) => {
 		var keynum
@@ -334,16 +458,39 @@ const CreateMso = ({ redirect }) => {
 						<Card style={{ marginTop: '24px' }}>
 							<CardContent>
 								<Grid container spacing={2}>
-							
+									<Avatar>
+
 										<input
 											type="file"
 											accept="image/*"
-											name='profile_photo'
-											ref={register()}
+											onChange={handleImage}
+											// ref={register()}
+											ref={imageUploader}
 											style={{
-												// display: "none"
+												display: "none"
 											}}
 										/>
+										<div
+											style={{
+												height: "132px",
+												width: "147px",
+												backgroundColor: '#489a9c'
+											}}
+											onClick={() => imageUploader.current.click()}
+										>
+											<img
+												ref={uploadedImage}
+												// src={uploadedImage}
+												// alt="Select"
+												style={{
+													width: "100",
+													height: "100%",
+													position: "acsolute",
+													cursor: 'pointer'
+												}}
+											/>
+										</div>
+									</Avatar>
 									<Grid item xs={12} sm={12} md={12} >
 										<Controller
 											as={<TextField />}
@@ -367,14 +514,14 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.mobile)}
 											name="mobile"
-											// rules={{
-											// 	required: "Mobile Number is required",
-											// 	pattern: {
-											// 		value: /^[0-9]*$/,
-											// 		message: "Only Numbers are allowed"
-											// 	},
-											// 	minLength: 10
-											// }}
+											rules={{
+												// required: "Mobile Number is required",
+												pattern: {
+													value: /^[0-9]*$/,
+													message: "Only Numbers are allowed"
+												},
+												minLength: 10
+											}}
 											control={control}
 											defaultValue=""
 											label="Mobile"
@@ -395,13 +542,13 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.email)}
 											name="email"
-											// rules={{
-											// 	required: "Email is required",
-											// 	pattern: {
-											// 		value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
-											// 		message: "Invalid email address"
-											// 	}
-											// }}
+											rules={{
+												// required: "Email is required",
+												pattern: {
+													value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
+													message: "Invalid email address"
+												}
+											}}
 											control={control}
 											// onChange={handleEmail}
 											defaultValue=""
@@ -426,7 +573,7 @@ const CreateMso = ({ redirect }) => {
 										/>
 									</Grid>
 									<Grid item xs={12} sm={4} md={4} >
-									<Controller
+										<Controller
 											as={<ReactDatePicker />}
 											error={Boolean(errors.dob)}
 											control={control}
@@ -524,7 +671,7 @@ const CreateMso = ({ redirect }) => {
 									<Grid item xs={12} sm={4} md={4} >
 										<FormControl
 											style={{ minWidth: 170 }}
-										error={Boolean(errors.state_id)}
+											error={Boolean(errors.state_id)}
 										>
 											<InputLabel id="demo-simple-select-label">
 												State
@@ -532,20 +679,20 @@ const CreateMso = ({ redirect }) => {
 
 											<Controller
 												as={
-												<Select>
-													{states.map(option => (
-													<MenuItem key={option.id} value={option.id}>
-														{option.state_name}
-													</MenuItem>
-													))}
-												</Select>
+													<Select>
+														{states.map(option => (
+															<MenuItem key={option.id} value={option.id}>
+																{option.state_name}
+															</MenuItem>
+														))}
+													</Select>
 												}
 												name="state_id"
 												// rules={{ required: "State is required" }}
 												control={control}
 												onChange={([selected]) => {
-												getCity(selected.target.value);
-												return selected;
+													getCity(selected.target.value);
+													return selected;
 												}}
 												defaultValue=""
 											/>
@@ -555,46 +702,46 @@ const CreateMso = ({ redirect }) => {
 										</FormControl>
 									</Grid>
 									<Grid item xs={12} sm={4} md={4}>
-									<FormControl
-										style={{ minWidth: 170 }}
-										error={Boolean(errors.city_id)}
-									>
-										<InputLabel id="demo-simple-select-label">
-										City
+										<FormControl
+											style={{ minWidth: 170 }}
+											error={Boolean(errors.city_id)}
+										>
+											<InputLabel id="demo-simple-select-label">
+												City
 										</InputLabel>
-										<Controller
-										as={
-											<Select>
-											{cities.map(option => (
-												<MenuItem key={option.id} value={option.id}>
-												{option.city_name}
-												</MenuItem>
-											))}
-											</Select>
-										}
-										name="city_id"
-										// rules={{ required: "City is required" }}
-										control={control}
-										defaultValue=""
-										/>
-										<FormHelperText>
-										{errors.city_id && errors.city_id.message}
-										</FormHelperText>
-									</FormControl>
+											<Controller
+												as={
+													<Select>
+														{cities.map(option => (
+															<MenuItem key={option.id} value={option.id}>
+																{option.city_name}
+															</MenuItem>
+														))}
+													</Select>
+												}
+												name="city_id"
+												// rules={{ required: "City is required" }}
+												control={control}
+												defaultValue=""
+											/>
+											<FormHelperText>
+												{errors.city_id && errors.city_id.message}
+											</FormHelperText>
+										</FormControl>
 									</Grid>
 									<Grid item xs={12} sm={4} md={4} >
 										<Controller
 											as={<TextField />}
 											error={Boolean(errors.pincode)}
 											name="pincode"
-											// rules={{
-											// 	required: "Pincode is required",
-											// 	pattern: {
-											// 		value: /^[0-9]*$/,
-											// 		message: "Only Numbers are allowed"
-											// 	},
-											// 	minLength: 6
-											// }}
+											rules={{
+												// required: "Pincode is required",
+												pattern: {
+													value: /^[0-9]*$/,
+													message: "Only Numbers are allowed"
+												},
+												minLength: 6
+											}}
 											control={control}
 											defaultValue=""
 											label="Pincode"
@@ -610,7 +757,7 @@ const CreateMso = ({ redirect }) => {
 										{errors.pincode && errors.pincode.type === "minLength" &&
 											<span style={{ color: 'red' }}>Pincode length should be 6</span>}
 									</Grid>
-									<Grid item xs={12} sm={4} md={4} >
+									{/* <Grid item xs={12} sm={4} md={4} >
 										<Controller
 											as={<TextField />}
 											error={Boolean(errors.centre_title)}
@@ -682,7 +829,7 @@ const CreateMso = ({ redirect }) => {
 											helperText={errors.store_code && errors.store_code.message}
 											fullWidth
 										/>
-									</Grid>
+									</Grid> */}
 									<Grid item xs={12} sm={6} md={6} >
 										<Controller
 											as={<TextField />}
@@ -702,16 +849,16 @@ const CreateMso = ({ redirect }) => {
 											as={<TextField />}
 											error={Boolean(errors.confirm_password)}
 											name="confirm_password"
-											// rules={{
-											// 	required: "Confirm Password is required",
-											// 	validate: value => {
-											// 		if (value === getValues()["encrypted_password"]) {
-											// 			return true;
-											// 		} else {
-											// 			return "Passwords do not match";
-											// 		}
-											// 	}
-											// }}
+											rules={{
+												// required: "Confirm Password is required",
+												validate: value => {
+													if (value === getValues()["encrypted_password"]) {
+														return true;
+													} else {
+														return "Passwords do not match";
+													}
+												}
+											}}
 											control={control}
 											defaultValue=""
 											label="Confirm Password"
@@ -721,7 +868,7 @@ const CreateMso = ({ redirect }) => {
 										/>
 									</Grid>
 								</Grid>
-									<Button color="primary" type="submit">Create</Button>
+								<Button color="primary" type="submit">Create</Button>
 							</CardContent>
 						</Card>
 					</Grid>
@@ -750,7 +897,7 @@ const CreateMso = ({ redirect }) => {
 														>
 															<InputLabel id="demo-simple-select-label">
 																Documents
-											</InputLabel>
+										        	</InputLabel>
 
 															<Controller
 																as={
@@ -768,11 +915,13 @@ const CreateMso = ({ redirect }) => {
 															/>
 														</FormControl>
 														&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        <input
+                            <input
 															type="file"
 															accept="image/png, image/jpeg,application/pdf"
-															// ref={register({ required: true })}
+															ref={register()}
+															multiple={true}
 															name={`qualifications[${index}].documents`}
+															id={index}
 
 
 														/>
@@ -788,7 +937,7 @@ const CreateMso = ({ redirect }) => {
 										<section>
 											<AddCircleIcon
 												onClick={() => {
-													qualificationsAppend({ id_proof_id: "",documents: "" });
+													qualificationsAppend({ qualification_id: "", documents: "" });
 												}}
 											/>
 										</section>
@@ -808,7 +957,7 @@ const CreateMso = ({ redirect }) => {
 														>
 															<InputLabel id="demo-simple-select-label">
 																Documents
-											</InputLabel>
+											       </InputLabel>
 
 															<Controller
 																as={
@@ -826,11 +975,13 @@ const CreateMso = ({ redirect }) => {
 															/>
 														</FormControl>
 														&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        <input
+                           <input
 															type="file"
 															accept="image/png, image/jpeg,application/pdf"
-															// ref={register({ required: true })}
+															ref={register({ required: true })}
+															// ref={fileInput}
 															name={`documents[${index}].documents`}
+														// onChange={handleDocumentUpload}
 
 														/>
 
@@ -845,7 +996,7 @@ const CreateMso = ({ redirect }) => {
 										<section>
 											<AddCircleIcon
 												onClick={() => {
-													documentsAppend({ id_proof_id: "",documents: "" });
+													documentsAppend({ id_proof_id: "", documents: "" });
 												}}
 											/>
 										</section>
